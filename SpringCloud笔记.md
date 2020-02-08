@@ -2,7 +2,7 @@
 
 ### 1.springcloud架构和常用网站
 
-![springcloud项目结构](img\springcloud.png)
+![springcloud项目结构](img/springcloud.png)
 
 > 1.官网：https://spring.io/projects/spring-cloud
 >
