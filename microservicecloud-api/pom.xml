@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>microservicecloud</artifactId>
+        <groupId>com.trd.springcloud</groupId>
+        <version>1.0</version>
+        <!--采用相对路径，改动测试起来更方便-->
+        <relativePath>../microservicecloud/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>microservicecloud-api</artifactId>
+    <dependencies>
+        <!--lombok的jar包-->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
+    </dependencies>
+</project>
