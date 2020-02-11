@@ -77,4 +77,33 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <!--finalName 父工程名称-->
+        <finalName>microservicecloud</finalName>
+        <resources>
+            <resource>
+                <!--开启maven工程的主resource的所有文件过滤-->
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+
+        </resources>
+        <!--增加插件-->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.0.2</version>
+                <!--配置插件解析-->
+                <configuration>
+                    <delimiters>
+                        <!--占位符的替换规则设置，
+                            以$符为界限,取过滤的resources中以$*$之间的信息-->
+                        <delimiter>$</delimiter>
+                    </delimiters>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
