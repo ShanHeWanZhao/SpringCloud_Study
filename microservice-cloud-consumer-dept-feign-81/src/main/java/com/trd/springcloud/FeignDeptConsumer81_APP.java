@@ -1,10 +1,9 @@
 package com.trd.springcloud;
 
-import com.trd.myrule.MyRule;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
+import org.springframework.cloud.netflix.feign.EnableFeignClients;
 
 /**
  * @author Trd
@@ -12,10 +11,10 @@ import org.springframework.cloud.netflix.ribbon.RibbonClient;
  */
 @SpringBootApplication
 @EnableEurekaClient
-// name就是注入进eureka server的eureka client的名字
-@RibbonClient(name="microservicecloud-dept",configuration = MyRule.class)
-public class DeptConsumer80_APP {
+// 在启动该微服务时，在指定包下去加载我们定义的Feign配置类（即使用了@FeignClient注解的接口）
+@EnableFeignClients("com.trd.feign.service")
+public class FeignDeptConsumer81_APP {
 	public static void main(String[] args) {
-		SpringApplication.run(DeptConsumer80_APP.class, args);
+		SpringApplication.run(FeignDeptConsumer81_APP.class, args);
 	}
 }

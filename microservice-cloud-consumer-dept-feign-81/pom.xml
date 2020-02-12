@@ -10,7 +10,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>microservicecloud-consumer-dept-80</artifactId>
+    <artifactId>microservice-cloud-consumer-dept-feign-81</artifactId>
     <dependencies>
         <!--引入自己编写的api模块的jar包,版本跟着项目走-->
         <dependency>
@@ -33,6 +33,9 @@
             <artifactId>spring-boot-devtools</artifactId>
         </dependency>
         <!--Ribbon相关引用，与eureka有关-->
+     <!--   因为feign底层是使用了ribbon作为负载均衡的客户端，
+                而ribbon的负载均衡也是依赖于eureka 获得各个服务的地址，
+                所以要引入eureka-client。-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-eureka</artifactId>
@@ -44,6 +47,11 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+        <!--增加Feign的依赖-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-feign</artifactId>
         </dependency>
     </dependencies>
 

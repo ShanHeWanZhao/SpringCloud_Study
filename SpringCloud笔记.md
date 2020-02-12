@@ -1,6 +1,8 @@
-SpringCloud
+# SpringCloud
 
-### 1.springcloud架构和常用网站
+## 一、springcloud架构和常用网站
+
+
 
 ![springcloud架构图](img/springcloud.png)
 
@@ -14,15 +16,15 @@ SpringCloud
 >
 > 3.springcloud中文网：https://www.springcloud.cc/
 
-### 2.项目版本
+## 二、项目版本
 
 **spring cloud版本：Dalston.SR1**
 
 **spring boot版本：1.5.19.RELEASE**
 
-### 3.环境搭建
+## 三、环境搭建
 
-#### 	3.1父工程（microservicecloud）
+### 1、父工程（microservicecloud）
 
 * pom文件
 
@@ -109,7 +111,7 @@ SpringCloud
 </project>
 ```
 
-#### 	3.2通用工程（microservicecloud-api）
+### 2、通用工程（microservicecloud-api）
 
 * pom文件
 
@@ -139,7 +141,7 @@ SpringCloud
 </project>
 ```
 
-#### 	3.3服务的提供者（microservicecloud-provider-dept-8001）
+### 3、服务的提供者（microservicecloud-provider-dept-8001）
 
 * pom文件
 
@@ -282,7 +284,7 @@ public class DeptProvider8001_App {
 
 ```
 
-#### 	3.4服务的消费者（microservice-cloud-consumer-dept-80）
+### 4、服务的消费者（microservice-cloud-consumer-dept-80）
 
 * pom文件
 
@@ -333,15 +335,15 @@ server:
   port: 80             # 只更改服务的端口
 ```
 
-### 4.Eureka
+## 四、Eureka
 
-#### 4.1Eureka是什么？
+### 1、Eureka是什么？
 
 ​		Eureka是一个**基于REST**的服务，用于定位服务，以实现云端中间层**服务发现和故障转移**。**只使用服务的标识符，就可以访问到服务**，而**不需要修改服务调用的配置文件**。类似于dubbo的注册中心，比如Zookeeper。
 
 ![Eureka的架构](img/Eureka.png)
 
-#### 4.2Eureka服务端的配置（microservicecloud-eureka-7001）
+### 2、Eureka服务端的配置（microservicecloud-eureka-7001）
 
 	* pom文件
 
@@ -402,7 +404,7 @@ eureka:
 
 标准，则成功
 
-#### 4.3在以前的项目中新增配置，完善Eureka
+3、在以前的项目中新增配置，完善Eureka
 
 * 模块microservicecloud-provider-dept-8001的pom文件新增
 
@@ -478,7 +480,7 @@ eureka:
 
 * 8001的yml文配置新增图解![](img/Eureka_config.png)
 
-#### 4.4Eureka的自我保护机制
+### 4、Eureka的自我保护机制
 
 * Eureka遵循AP原则，ZooKeeper遵循CP原则
 * 自我保护提示![](img/Eureka_selfprotect.png)
@@ -489,7 +491,7 @@ eureka:
 >
 >​	在springcloud中，可以配置eureka.server.enable-self-preservation=false来禁用自我保护模式（不推荐）
 
-#### 4.5Eureka服务发现（discovery）
+### 5、Eureka服务发现（discovery）
 
 > 对于注册进Eureka里的微服务，可以痛过服务发现来获取该服务的信息
 
@@ -523,11 +525,11 @@ eureka:
 
 * 访问localhost:8001/dept/discovery，出现如下，则成功![](img/Eureka_discovery.png)
 
-#### 4.5 Eureka的集群
+### 6、Eureka的集群
 
-##### 1.C:/Windows/System32/drivers/etc/hosts文件新增以下域名映射![](img/eureka_hostsname.png)
+#### (1)C:/Windows/System32/drivers/etc/hosts文件新增以下域名映射![](img/eureka_hostsname.png)
 
-##### 2.新增microservicecloud-eureka-7002和microservicecloud-eureka-7003模块
+#### (2)新增microservicecloud-eureka-7002和microservicecloud-eureka-7003模块
 
 * yml和pom文件复制microservicecloud-eureka-7001的
 
@@ -549,7 +551,7 @@ eureka:
 
 * 启动类和microservicecloud-eureka-7001一样
 
-##### 3.microservicecloud-provider-dept-8001yml文件修改
+#### (3)microservicecloud-provider-dept-8001yml文件修改
 
 ```yaml
 #客户端注册进eureka服务列表
@@ -562,13 +564,13 @@ eureka:
          http://eureka7003.com:7003/eureka
 ```
 
-##### 4.测试
+#### (4)测试
 
 输入eureka server的url，看到如下，则集群成功![](img/eureka_colony.png)
 
-#### 4.6Eureka和zookeeper的比较
+### 7、Eureka和zookeeper的比较
 
-##### 1.CAP理论![](img/cap.png)
+#### (1).CAP理论![](img/cap.png)
 
 > ​		**一个分布式系统不可能同时很好地满足一致性(Consistency)、可用性(Availability )和分区容错性(Partition tolerance)**，**最多只能较好的同时满足两个**。因此，根据CAP原理将NoSQL数据库分成了满足CA原则、CP原则和AP原则三类
 >
@@ -580,11 +582,11 @@ eureka:
 
 **而由于当前的网络硬件肯定会出现延迟丢包等问题，所以，分区容错性我们必须要实现**
 
-##### 2.zookeeper保证CP
+#### (2).zookeeper保证CP
 
 > ​		**当zookeepe的master节点因为网络故障与其他节点失去联系时，剩余节点会重新进行leader选举。如果leader选举时间过长，30~120s，则这个期间整个zookeeper集群都不可用，导致这期间服务瘫痪**。而在云部署的情况下，网络问题让zookeeper集群失去master节点概率较大，尽管最终能恢复，但选举时间长使我们不能容忍的。
 
-##### 3.Eureka保证AP
+#### (3).Eureka保证AP
 
 >​		**Eureka的各个节点都平等**，几个节点挂掉不会影响正常节点的工作，剩余节点依然可提供服务。因为**Eureka客户端在向某个Eureka注册或时如果发现连接失败，则会自动切换至其它节点，只要有一台Eureka还在,就能保证注册服务可用(保证可用性)**，只不过查到的信息可能不是最新的(**不保证强一致性**)。除此之外，Eureka还有一种**自我保护机制**，如果在15分钟内超过85%的节点都没有正常的心跳,那么Eureka就认为客户端与注册中心出现了网络故障，此时会出现以下几种情况:
 >1. Eureka不再从注册列表中移除因为长时间没收到心跳而应该过期的服务
@@ -592,3 +594,456 @@ eureka:
 >3. 当网络稳定时，当前实例新的注册信息会被同步到其它节点。
 
 ​		**因此，Eureka可以很好的应对因网络故障导致部分节点失去联系的情况，而不会像zookeeper那样使整 个注册服务瘫痪。**
+
+## 五、Ribbon负载均衡
+
+### 1.Ribbon是什么？
+
+​		**Spring Cloud Ribbon**是基于Netlix Ribbon实现的一套**客户端 负载均衡的工具**。
+​		简单的说，Ribbon是Netflix发布的开源项目， 主要功能是提供客户端的软件负载均衡算法，将Netflix的中间层服务连接在一起。
+​		Ribbon客户端组件提供一系列完善的配置项如连接超时，重试等。简单的说，就是在配置文件中列出Load Balancer (简称LB)后面所有的机器，Ribbon会自动的帮助你基于某种规则(如简单轮询,随机连接等)去连接这些机器。我们也**很容易使用Ribbon实现自定义的负载均衡算法**。
+
+​		官网资料：https://github.com/Netflix/ribbon/wiki/Getting-Started
+
+### 2.LB(Load Balance，负载均衡)
+
+​		LB,即负载均衡(Load Balance),在微服务或分布式集群中经常用的一种应用。**负载均衡简单的说就是将用户的请求平摊的分配到多个服务上，从而达到系统的HA（高可用）**。常见的负载均衡有软件Nginx, LVS,硬件F5等。
+
+### 3.Ribbon的初步配置
+
+#### (1).microservice-cloud-consumer-dept-80模块的pom文件新增
+
+```xml
+        <!--Ribbon相关引用，与eureka有关-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-eureka</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-ribbon</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+```
+
+#### (2).microservice-cloud-consumer-dept-80模块的yml文件新增
+
+```yaml
+eureka:
+  client:
+    register-with-eureka: false  # 不将自己注册到eureka server
+    service-url:
+      defaultZone: 
+          http://eureka7001.com:7001/eureka,
+          http://eureka7002.com:7002/eureka,
+          http://eureka7003.com:7003/eureka
+
+```
+
+#### (3).microservice-cloud-consumer-dept-80模块修改Configuration类
+
+在向容器中注入org.springframework.web.client.RestTemplate类时，方法上加入**@LoadBalanced注解，以表示开启使用负载均衡客户端**
+
+```java
+@Configuration
+public class ConfigBean {
+	@Bean
+	@LoadBalanced
+	public RestTemplate getRestTemplate(){
+		return new RestTemplate();
+	}
+}
+```
+
+#### (4).microservice-cloud-consumer-dept-80启动类加入@EnableEurekaClient注解
+
+#### (5).修改microservice-cloud-consumer-dept-80模块的ConsumerController客户端访问类
+
+```java
+	// 使用Ribbon，只提供applicationName,不再使用域名+端口号的固定写法了
+	/*	
+	注意：这么写了，在之后的restTemplate调用方法时的拼接url，记得用'/'隔开，
+		 因为这种写法不会在下面的例子'microservicecloud-dept'之后自动加上'/'
+	 */
+	private static final String REST_URL_PREFIX = "http://microservicecloud-dept";
+```
+
+#### (6).测试
+
+​		依次启动7001,7002,7003，在启动8001，最后启动80，浏览器访问localhost/consumer/dept/list，如访问成功，则成功
+
+### 4.Ribbon负载均衡
+
+#### (1).新建microservicecloud-provider-dept-8002和microservicecloud-provider-dept-8003模块
+
+这两个新建的模块内容都复制microservicecloud-provider-dept-8001的
+
+#### (2).yml文件更改的内容(和自己模块名对应，spring.application.name不要修改)
+
+```yaml
+server:
+  port: 8002        # 修改访问端口  
+spring:
+  application:
+    name: microservicecloud-dept                    # 不要修改，和8001的保持一致
+  datasource:
+    url: jdbc:mysql://localhost:3306/clouddb02    # 修改数据库，验证轮回算法
+
+eureka:
+  client:
+  instance:
+    instance-id: microservicecloud-dept:8002   # 修改注册进eureka server的实例id
+
+```
+
+#### (3).新建clouddb02、clouddb02数据库，和clouddb01内容一致
+
+```sql
+/*  
+	只改数据库名字
+*/
+DROP DATABASE IF EXISTS cloudDB02;
+CREATE DATABASE cloudDB02 CHARACTER SET UTF8;
+USE cloudDB02;
+CREATE TABLE dept
+(
+	deptno 	BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	dname VARCHAR(60),
+	db_source VARCHAR(60)
+);
+
+INSERT INTO dept(dname,db_source) VALUES('开发部',DATABASE());
+INSERT INTO dept(dname,db_source) VALUES('人事部',DATABASE());
+INSERT INTO dept(dname,db_source) VALUES('财务部',DATABASE());
+INSERT INTO dept(dname,db_source) VALUES('市场部',DATABASE());
+INSERT INTO dept(dname,db_source) VALUES('运维部',DATABASE());
+
+SELECT * FROM dept;
+```
+
+#### (4).测试
+
+​		依次启动7001，7002，7003，8001，8002，8003，80的服务，测试80端口的访localhost/consumer/dept/list，每次刷新，查看数据库名字是否依次循环变化，即是否使用到了Ribbon的轮询算法
+
+#### (5).总结
+
+​		Ribbon其实就是一个软负载均衡的客户端组件，他可以和其他所需请求的客户端结合使用，和Eureka结合只是其中的一个实例。默认采用轮询算法。
+
+### 5.Ribbon的核心组件IRule
+
+#### (1).IRule：根据特定算法从服务列表中选择一个要访问的服务，是一个顶级接口
+
+```java
+public interface IRule{
+	// 根据自定义的算法，选择服务
+    public Server choose(Object key);
+    // 设置
+    public void setLoadBalancer(ILoadBalancer lb);
+    // 获取
+    public ILoadBalancer getLoadBalancer();    
+}
+```
+
+#### (2).Ribbon自带的IRule实现类（都在com.netflix.loadbalancer包下算法类）
+
+![](img/irule.png)
+
+>1.RoundRobinRule：轮询算法
+>
+>2..RandomRule：随机选择算法
+>
+>3.AvailabilityFilteringRule：会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务、还有并发的连接数量超过阈值的服务，然后对剩余的服务列表按照轮询策略进行访问
+>
+>4.WeightedResponseTimeRule：根据平均响应时间计算所有服务的权重，响应时间越快的服务权重越大，选中的概率越高。刚启动时如果统计信息不足，则使用RoundRobinRule策略，等统计信息足够，会切换到WeightedResponseTimeRule
+>
+>5.RetryRule：先按RoundRobinRule轮询算法获取服务，如果失败则在指定时间内进行重试，获取可用的服务。
+>
+>6.BestAviableRule：会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，然后选择一个并发量最小的服务
+>
+>7.ZoneAvoidanceRule：默认规则，符合判断server所在区域的性能和server的可用性选择服务器
+
+​		***要改变Ribbon的选择server规则，可以把对应的IRule实现类先实例化，在用@Bean注解注入进spring容器中。***
+
+### 6.自定义Ribbon的负载均衡算法
+
+#### (1).目标：类似轮询算法，每个server使用3次，再进行轮询
+
+#### (2).配置注意细节
+
+​		**自定义配置类不能放在@ComponentScan所扫描的当前包以及子包下，否则我们自定义的这个配置类就会被所有的Ribbon客户端锁共享，达不到特殊定制化的目的**
+
+#### (3).实现
+
+自定义MyRoundRobinThreeTimesRule类，复制RoundRobinRule类的源码的基础上再做如下改动
+
+```java
+	
+	// 自定义的计数器，这个服务被选则了多少次
+	private int count = 0;
+	// ============================= 只修改这个方法
+	private int incrementAndGetModulo(int modulo) {
+
+		int current = nextServerCyclicCounter.get();
+		// 修改的部分，保证每个服务轮询3次
+		count++;
+		if (count > 3) {
+			// total不设为0，是因为这次选择本来就会返回一次，如果为0则每个服务会多轮一次
+			count = 1;
+			for (; ; ) {
+				int next = (current + 1) % modulo;
+				if (nextServerCyclicCounter.compareAndSet(current, next))
+					return next;
+			}
+		} else {
+			return current;
+		}
+	}
+```
+
+#### (4).注入进容器(这个类单独建包，原因在上面第2点)
+
+```java
+@Configuration
+public class MyRule {
+	@Bean
+	public IRule getMyRule(){
+		return new MyRoundRobinThreeTimesRule();
+	}
+}
+
+```
+
+#### (5).启动类上添加注解
+
+在启动该微服务时，去加载我们定义的Ribbon配置类
+
+```java
+// name就是注入进eureka server的eureka client的名字
+@RibbonClient(name="microservicecloud-dept",configuration = MyRule.class)
+```
+
+#### (6).测试
+
+启动全部服务，浏览器访问localhost/consumer/dept/list，依次刷新，查看是否每个服务使用3次再轮询
+
+## 六、Feign负载均衡
+
+### 1.Feign概述
+
+​	**官网**：https://cloud.spring.io/spring-cloud-openfeign/reference/html/
+
+> ​		Feign是一个**声明式WebService客户端**。 使用Feign能让编写Web Service客户端更加简单,它的使用方法是定义一个接口,然后在上面添加注解，同时也支持JAX-RS标准的注解。 Feign也支持可拔插式的编码器和解码器。Spring Cloud对Feign进行了封装,使其**支持了Spring MVC标准注解和HttpMessageConverters**. **Feign可以与Eureka和Ribbon组合使用以支持负载均衡**。
+>
+> ​		**只需要创建一个接口，然后再上面添加注解即可方便的使用Feign，面向接口编程**
+
+### 2.Feign能干什么
+
+> ​	Feign旨在使编写Java Http客户端变得更容易。
+> ​	前面在使用Ribbon+ RestTemplate时，利用RestTemplate对http请求的封装处理，形成了一套模版化的调用方法。但是在实际开发中，由于**对服务依赖的调用可能不止一处， 往往一 个接口会被多处调用，所以通常都会针对每个微服务自行封装一 些客户端类来包装这些依赖服务的调用**。所以, Feign在此基础上做了进一 步封装,由他来帮助我们定义和实现依赖服务接口的定义。在Feign的实现下，我们**只需创建一个接口并使用注解的方式来配置它(以前是Dao接口上面标注Mapper注解现在是一个微服务接口上面标注一个Feign注解即可)**，即可完成对服务提供方的接口绑定，简化了使用Spring cloud Ribbon时，自动封装服务调用客户端的开发量。
+
+### 3.构建Feign工程
+
+#### (1).新建microservice-cloud-consumer-dept-feign-81模块
+
+* pom文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>microservicecloud</artifactId>
+        <groupId>com.trd.springcloud</groupId>
+        <version>1.0</version>
+        <relativePath>../microservicecloud/pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>microservice-cloud-consumer-dept-feign-81</artifactId>
+    <dependencies>
+        <!--引入自己编写的api模块的jar包,版本跟着项目走-->
+        <dependency>
+            <groupId>com.trd.springcloud</groupId>
+            <artifactId>microservicecloud-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--springboot的web的starter-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!--热部署 修改后立即生效-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>springloaded</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+        </dependency>
+        <!--Ribbon相关引用，与eureka有关-->
+     <!--   因为feign底层是使用了ribbon作为负载均衡的客户端，
+                而ribbon的负载均衡也是依赖于eureka 获得各个服务的地址，
+                所以要引入eureka-client。-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-eureka</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-ribbon</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+        <!--增加Feign的依赖-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-feign</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>
+```
+
+* application.yml文件
+
+```yaml
+server:
+  port: 81
+
+eureka:
+  client:
+    register-with-eureka: false  # 不将自己注册到eureka server
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka,http://eureka7002.com:7002/eureka,http://eureka7003.com:7003/eureka
+
+```
+
+#### (2).修改microservicecloud-api模块（公共jar包）
+
+* pom文件新增
+
+  ```xml
+          <!--增加Feign的依赖-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-feign</artifactId>
+          </dependency>
+  ```
+
+* 增加Fegin客户端接口
+
+  ```java
+  package com.trd.feign.service;
+  
+  import com.trd.springcloud.entities.Dept;
+  import org.springframework.cloud.netflix.feign.FeignClient;
+  import org.springframework.web.bind.annotation.GetMapping;
+  import org.springframework.web.bind.annotation.PathVariable;
+  import org.springframework.web.bind.annotation.PostMapping;
+  
+  import java.util.List;
+  
+  /**
+   * @author Trd
+   * @date 2020-02-12 11:47
+   */
+  // 微服务的名字，
+  @FeignClient("microservicecloud-dept")
+  public interface DeptClientService {
+  
+  	@PostMapping("/dept/add")
+  	boolean add(Dept dept);
+  
+  	@GetMapping("/dept/get/{id}")
+  	Dept findById(@PathVariable("id") Long id);
+  
+  	@GetMapping("/dept/list")
+  	List<Dept> findAll();
+  }
+  ```
+
+#### (3).microservice-cloud-consumer-dept-feign-81增加启动类和controller
+
+* 启动类
+
+  ```java
+  package com.trd.springcloud;
+  
+  import org.springframework.boot.SpringApplication;
+  import org.springframework.boot.autoconfigure.SpringBootApplication;
+  import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
+  import org.springframework.cloud.netflix.feign.EnableFeignClients;
+  
+  /**
+   * @author Trd
+   * @date 2020-02-09 17:05
+   */
+  @SpringBootApplication
+  @EnableEurekaClient
+  // 在启动该微服务时，在指定包下去加载我们定义的Feign配置类（即使用了@FeignClient注解的接口）
+  @EnableFeignClients("com.trd.feign.service")
+  public class FeignDeptConsumer81_APP {
+  	public static void main(String[] args) {
+  		SpringApplication.run(FeignDeptConsumer81_APP.class, args);
+  	}
+  }
+  ```
+
+* controller
+
+  ```java
+  package com.trd.springcloud.controller;
+  
+  import com.trd.feign.service.DeptClientService;
+  import com.trd.springcloud.entities.Dept;
+  import org.springframework.beans.factory.annotation.Autowired;
+  import org.springframework.web.bind.annotation.PathVariable;
+  import org.springframework.web.bind.annotation.RequestMapping;
+  import org.springframework.web.bind.annotation.RestController;
+  
+  import java.util.List;
+  
+  @RestController
+  public class FeignConsumerController {
+      
+      /**
+  	 *  注入进使用了@FeignClient注解的接口，动态代理会去实现
+  	 */
+  	@Autowired
+  	private DeptClientService deptClientService;
+      
+  	// 添加
+  	@RequestMapping("consumer/dept/add")
+  	public boolean add(Dept dept){
+  		System.out.println(dept);
+  		return deptClientService.add(dept);
+  	}
+  	// 查询一个
+  	@RequestMapping("consumer/dept/get/{id}")
+  	public Dept findById(@PathVariable("id") Long id){
+  		return deptClientService.findById(id);
+  	}
+  	// 查询所有
+  	@RequestMapping("consumer/dept/list")
+  	public List<Dept> findAll(){
+  		return deptClientService.findAll();
+  	}
+  }
+  ```
+
+#### (4).测试
+
+​		依次启动7001，7002，7003，在启动8001，8002，8003最后启动81，浏览器访问localhost:81/consumer/dept/list，如访问成功，则成功
+
+### 4.总结
+
+* Fegin集成了Ribbon,而与Ribbon不同的是，通过Feign只需要定义服务绑定接口且以声明式的方法，优雅而简单的实现了服务调用
+* Feign通过接口的方法调用Rest服务(之前是Ribbon+ RestTemplate) ,该请求发送给Eureka服务器(http://microservicecloud-dept/dept/list) ,通过Feign直接找到服务接口，由于在进行服务调用的时候融合了Ribbon技术,所以也**支持负载均衡作用**。
+
