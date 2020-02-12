@@ -23,6 +23,7 @@ public class FeignConsumerController {
 	@Autowired
 	private DeptClientService deptClientService;
 
+
 	// 添加
 	@RequestMapping("consumer/dept/add")
 	public boolean add(Dept dept){

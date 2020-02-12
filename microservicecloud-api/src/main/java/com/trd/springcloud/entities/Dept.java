@@ -18,7 +18,7 @@ public class Dept implements Serializable {
 	/**
 	 *  主键
 	 */
-	private Integer deptno;
+	private Long deptno;
 	/**
 	 * 	部门名称
 	 */

@@ -1,4 +1,4 @@
-# SpringCloud
+ SpringCloud
 
 ## 一、springcloud架构和常用网站
 
@@ -1046,4 +1046,283 @@ eureka:
 
 * Fegin集成了Ribbon,而与Ribbon不同的是，通过Feign只需要定义服务绑定接口且以声明式的方法，优雅而简单的实现了服务调用
 * Feign通过接口的方法调用Rest服务(之前是Ribbon+ RestTemplate) ,该请求发送给Eureka服务器(http://microservicecloud-dept/dept/list) ,通过Feign直接找到服务接口，由于在进行服务调用的时候融合了Ribbon技术,所以也**支持负载均衡作用**。
+
+## 七、Hystrix断路器
+
+### 1、分布式系统的问题
+
+* 分布式系统面临的问题：
+  		复杂分布式体系结构中的应用程序有数十个依赖关系，每个依赖关系在某些时候将不可避免地失败。
+* 服务雪崩
+          多个微服务之间调用的时候，假设微服务A调用微服务B和微服务C,微服务B和微服务C又调用其它的微服务,这就是所谓的“**扇出**“。如果扇出的链路上某个微服务的调用响应时间过长或者不可用，对微服务A的调用就会占用越来越多的系统资源，进而**引起系统崩溃，所谓的“雪崩效应”**
+* 对于高流量的应用来说，单一的后端依赖可能会导致所有服务器上的所有资源都在几秒钟内饱和。比失败更糟糕的是，这些应用程序还可能导致服务之间的延迟增加，备份队列，线程和其他系统资源紧张，导致整个系统发生更多的级联故障。这些都表示需要对故障和延迟进行隔离和管理，以便单个依赖关系的失败，不能取消整个应用程序或系统。
+
+### 2.Hystrix介绍
+
+​		Hystrix是一个用于处理分布式系统的**延迟和容错**的开源库, 在分布式系统里,许多依赖不可避免的会调用失败,比如超时、异常等，Hystrix能够保证在一 个依赖出问题的情况下，**不会导致整体服务失败，避免级联故障,以提高分布式系统的弹性。**
+​        "断路器”本身是一种开关装置,当某个服务单元发生故障之后，通过断路器的故障监控(类似熔断保险丝) ,**向调用方返回一个符合预期的、可处理的备选响应(FallBack) ，而不是长时间的等待或者抛出调用方无法处理异常**，这样就保证了服务调用方的线程不会被长时间、不必要地占用，从而避免了故障在分布式系统中的蔓延，乃至雪崩。
+
+​	官网使用方法：https://github.com/Netflix/Hystrix/wiki/How-To-Use
+
+### 3.服务熔断
+
+> ​		熔断机制是应对雪崩效应的一种微服务链路保护机制。**当扇出链路的某个微服务不可用或者响应时间太长时，会进行服务的降级,进而熔断该节点微服务的调用，快速返回"错误"的响应信息**。当检测到该节点微服务调用响应正常后恢复调用链路。在SpringCloud框架里熔断机制通过Hystrix实现。Hystrix会监控微服务间调用的状况，当失败的调用到一定阈值, 缺省是5秒内20次调用失败就会启动熔断机制。**熔断机制的注解是@HystrixCommand.**
+> 
+
+* 参考microservicecloud-provider-dept-8001，新建microservicecloud-provider-dept-hystrix-8001模块
+
+*  pom文件增加
+
+  ```xml
+   <!--Hystrix依赖-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-hystrix</artifactId>
+          </dependency>
+  ```
+
+* yml文件修改部分
+
+  ```yaml
+  eureka:
+    client:
+    instance:
+      instance-id: microservicecloud-dept-hystrix:8001   # 只修改这里
+  ```
+
+* 修改DeptHystrixProviderController类
+
+  ```java
+  @RestController
+  public class DeptHystrixProviderController {
+  
+  	private DeptService deptService;
+  
+  	public DeptHystrixProviderController(@Autowired DeptService deptService) {
+  		this.deptService = deptService;
+  	}
+  
+  	/*
+  	 * 当使用使用@HystrixCommand注解时，该方法一旦抛出异常，
+  	 * 	就会调用fallbackMethod属性指定的方法（即熔断），
+  	 * 	fallbackMethod只能指定本类中的某个方法
+  	 */
+  	@GetMapping("dept/get/{id}")
+  	@HystrixCommand(fallbackMethod = "processHystrix_get")
+  	public Dept get(@PathVariable("id") Long id){
+  		Dept dept = deptService.findById(id);
+  		return Objects.requireNonNull(dept, "没有这个部门，测试熔断使用");
+  	}
+  	// 发生熔断后调用的方法
+  	public Dept processHystrix_get(Long id){
+  		return  new Dept().setDeptno(id).setDname("没有ID: "+id+",请重新输入")
+  				.setDb_source("没有对应的数据库");
+  	}
+  
+  }
+  ```
+
+* 启动类再增加@EnableCircuitBreaker注解，开启服务熔断机制
+
+### 4.服务降级
+
+#### (1)为什么要降级？
+
+>​		整体资源不够了，忍痛将某些服务先关掉，待度过难关后再开启。资源的抢占和分配
+
+#### (2)步骤
+
+* 修改microservicecloud-api模块
+
+  ​		根据该模块已有的com.trd.feign.service.DeptClientService接口，新增DeptClientServiceFallBackFactory类，且**该类要实现FallbackFactory接口，该类的作用就是将业务方法与熔断解耦**。**该接口是带泛型的，接受的类型是feign的interface类型**，即在本模块中就是DeptClientService接口。
+
+* DeptClientServiceFallBackFactory类代码
+
+  ```java
+  @Component
+  public class DeptClientServiceFallBackFactory implements FallbackFactory<DeptClientService> {
+  
+  	@Override
+  	public DeptClientService create(Throwable cause) {
+  		return new DeptClientService() {
+  			@Override
+  			public boolean add(Dept dept) {
+  				return false;
+  			}
+  			// 只测试这个方法
+  			@Override
+  			public Dept findById(Long id) {
+  				return new Dept().setDeptno(id)
+  						.setDname("该deptNo没有对应的信息，"
+                                   +"Consumer客户端提供的降级信息，此刻服务provider已经关闭")
+  						.setDb_source("没有这个数据库");
+  			}
+  
+  			@Override
+  			public List<Dept> findAll() {
+  				return null;
+  			}
+  		};
+  	}
+  }
+  ```
+
+* 修改DeptClientService类上的注解
+
+  ```java
+  @FeignClient(value = "microservicecloud-dept", fallbackFactory = DeptClientServiceFallBackFactory.class)
+  ```
+
+* microservice-cloud-consumer-dept-feign-81的yml文件添加
+
+  ```yaml
+  # 开启feign的hystrix配置，这个版本中一定要做
+  feign:
+    hystrix:
+      enabled: ture
+  ```
+
+  **注意：IDEA中这个配置没有提示，但它默认是关闭的，FeignClientsConfiguration类中的静态内部类HystrixFeignConfiguration就是设置它的，默认为false状态。**
+
+* 测试
+  * 依次启动7001,7002,7003，microservicecloud-provider-dept-8001，和81模块
+  * 先正常访问localhost:81/consumer/dept/get/4，查看是否启动成功
+  * 关闭microservicecloud-provider-dept-8001服务，再次访问
+
+localhost:81/consumer/dept/get/4，对比查看到如下情况，则成功![](img/hystrix_servicedegradation.png)
+
+### 5.熔断和降级的总结
+
+#### 服务熔断:
+
+> ​		一般是**某个服务故障或者异常引起**，类似现实世界中的“保险丝“，当某个异常条件被触发，直接熔断整个服务，而不是一直等到此服务超时。
+
+#### 服务降级
+
+> ​	所谓**降级，一般是从整体负荷考虑**。就是当某个服务熔断之后，服务器将不再被调用，此时客户端可以自己准备一 个本地的fallback回调， 返回一个缺省值。这样做，虽然服务水平下降，但好歹可用，比直接挂掉要强。
+>
+> ​	服务降级是**在客户端（消费者）处理完成**的，与服务端没关系
+
+### 6.HystrixDashboard
+
+> ​		除了隔离依赖服务的调用以外，Hystrix还提供 了**准实时的调用监控(Hystrix Dashboard)**，Hystrix会持续地记录所有通过Hystrix发起的请求的执行信息，并以统计报表和图形的形式展示给用户，包括每秒执行多少请求多少成功,多少失败等。Netflix通过hystrix-metrics-event-stream项目实现了对以上指标的监控。Spring Cloud也提供了Hystrix Dashboard的整合,对监控内容转化成可视化界面。
+
+#### (1)新建模块microservicecloud-consumer-hystrix-dashboard-9001
+
+* pom文件
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <project xmlns="http://maven.apache.org/POM/4.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <parent>
+          <artifactId>microservicecloud</artifactId>
+          <groupId>com.trd.springcloud</groupId>
+          <version>1.0</version>
+          <relativePath>../microservicecloud/pom.xml</relativePath>
+      </parent>
+      <modelVersion>4.0.0</modelVersion>
+  
+      <artifactId>microservicecloud-consumer-hystrix-dashboard-9001</artifactId>
+      <dependencies>
+          <!--引入自己编写的api模块的jar包,版本跟着项目走-->
+          <dependency>
+              <groupId>com.trd.springcloud</groupId>
+              <artifactId>microservicecloud-api</artifactId>
+              <version>${project.version}</version>
+          </dependency>
+  
+          <!--Ribbon相关引用-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-eureka</artifactId>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-ribbon</artifactId>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-config</artifactId>
+          </dependency>
+  
+          <!--增加Feign的依赖-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-feign</artifactId>
+          </dependency>
+  
+          <!--web启动器-->
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-web</artifactId>
+          </dependency>
+  
+          <!--热部署 修改后立即生效-->
+          <dependency>
+              <groupId>org.springframework</groupId>
+              <artifactId>springloaded</artifactId>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-devtools</artifactId>
+          </dependency>
+          <!--重点-->
+          <!--hystrix-dashboard依赖-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-hystrix</artifactId>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-hystrix-dashboard</artifactId>
+          </dependency>
+      </dependencies>
+  
+  </project>
+  
+  ```
+
+* yml文件只改端口
+
+  ```yaml
+  server:
+    port: 9001
+  ```
+
+* 启动类
+
+  ```java
+  @SpringBootApplication
+  // 启动Hystrix的监控
+  @EnableHystrixDashboard
+  public class HystrixDashboard9001_App {
+  	public static void main(String[] args) {
+  		SpringApplication.run(HystrixDashboard9001_App.class, args);
+  	}
+  }
+  
+  ```
+
+* 需要被监控点模块(这里用microservicecloud-provider-dept-hystrix-8001做测试)，都必须要有actuator和hystrix的依赖
+
+  ```xml
+  <!--actuator（制动器），监控自信息完善-->
+  <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+  </dependency>
+  
+  ```
+
+#### (2)测试
+
+* 启动9001
+* 浏览器查看localhost:9001/hystrix，看见豪猪说明成功了
+* 再依次启动7001，7002，7003，microservicecloud-provider-dept-hystrix-8001
+* 套用*Single Hystrix App:* http://hystrix-app:port/hystrix.stream，浏览器输入http://localhost:8001/hystrix.stream，查看是否有ping
+* 回到localhost:9001/hystrix，如下输入![](img/hystrix_dashboard_setting.png)
+
+* 进入图形界面，根据实心圆大小和颜色可查看到访问频率和状态，etc
 

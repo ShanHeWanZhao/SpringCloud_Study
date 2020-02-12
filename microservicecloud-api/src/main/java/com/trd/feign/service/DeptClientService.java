@@ -1,5 +1,6 @@
 package com.trd.feign.service;
 
+import com.trd.feign.hystrix.DeptClientServiceFallBackFactory;
 import com.trd.springcloud.entities.Dept;
 import org.springframework.cloud.netflix.feign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +14,7 @@ import java.util.List;
  * @date 2020-02-12 11:47
  */
 // 微服务的名字
-@FeignClient("microservicecloud-dept")
+@FeignClient(value = "microservicecloud-dept", fallbackFactory = DeptClientServiceFallBackFactory.class)
 public interface DeptClientService {
 	/*
 		映射路径就是调用该方法时，具体去找该服务匹配的那个路径
