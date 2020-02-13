@@ -1326,3 +1326,137 @@ localhost:81/consumer/dept/get/4，对比查看到如下情况，则成功![](im
 
 * 进入图形界面，根据实心圆大小和颜色可查看到访问频率和状态，etc
 
+## 8.zuul路由网关
+
+### 1.概述
+
+ Zuul包含了对**请求的路由和过滤**两个最主要的功能:
+
+> ​		**路由：负责将外部请求转发到具体的微服务实例上，是实现外部访问统一入口的基础。**
+>
+> ​		**过滤：负责对请求的处理过程进行干预，是实现请求校验、服务聚合等功能的基础**。
+>
+> ​		Zuul和Eureka进行整合,将Zuul自身注册为Eureka服务治理下的应用,同时从Eureka中获得其他微服务的消息，也即以后的访问微服务都是通过Zuul跳转后获得。
+
+**注意: Zuul服务最终还是会注册进Eureka,提供=代理+路由+过滤三大功能**
+
+### 2.基本配置
+
+#### (1)新建microservicecloud-zuul-gateway-9527模块
+
+* pom文件
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <project xmlns="http://maven.apache.org/POM/4.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <parent>
+          <artifactId>microservicecloud</artifactId>
+          <groupId>com.trd.springcloud</groupId>
+          <version>1.0</version>
+          <relativePath>../microservicecloud/pom.xml</relativePath>
+      </parent>
+      <modelVersion>4.0.0</modelVersion>
+  
+      <artifactId>microservicecloud-zuul-gateway-9527</artifactId>
+      <dependencies>
+          <dependency>
+              <groupId>com.trd.springcloud</groupId>
+              <artifactId>microservicecloud-api</artifactId>
+              <version>${project.version}</version>
+          </dependency>
+          <!--zuul依赖，因为zuul会注册进eureka，所以需要eureka的依赖-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-eureka</artifactId>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-zuul</artifactId>
+          </dependency>
+          <!--actuator监控器-->
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-actuator</artifactId>
+          </dependency>
+  
+          <!--Hystrix熔断-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-hystrix</artifactId>
+          </dependency>
+  
+          <!--web的启动器-->
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-web</artifactId>
+          </dependency>
+  
+          <!--热部署 修改后立即生效-->
+          <dependency>
+              <groupId>org.springframework</groupId>
+              <artifactId>springloaded</artifactId>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-devtools</artifactId>
+          </dependency>
+      </dependencies>
+  
+  </project>
+  ```
+
+* yml配置
+
+  ```yaml
+  server:
+    port: 9527
+  # 微服务的名字
+  spring:
+    application:
+      name: microservicecloud-zuul-gateway
+  # eureka的相关配置
+  eureka:
+    instance:
+      instance-id: zuulgateway-9572
+      prefer-ip-address: true
+    client:
+      service-url:
+        defaultZone: http://eureka7001.com:7001/eureka/,http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/
+  # 需要显示的该app的相关信息
+  info:
+    app.name: microservice-SpringCloud-zuul-gateway
+    company.name: www.trd.com
+    build.artifactId: $project.artifactId$
+    build.version: $project.version$
+  # zuul的基础配置
+  zuul:
+    ignored-services: microservicecloud-dept   # 忽略全部用"*", 即ignored-services: "*"
+    prefix: /prefix                            #  访问Rest服务时，要加的公共前缀
+    routes:                                    # 不暴露微服务名，用其他访问路径代替设置
+      mydept.serviceId: microservicecloud-dept
+      mydept.path: /mydept/**
+  
+  ```
+
+* 启动类
+
+  ```java
+  @SpringBootApplication
+  // 开启Zuul的路由代理
+  @EnableZuulProxy
+  public class ZuulGateway9527_APP {
+  	public static void main(String[] args) {
+  		SpringApplication.run(ZuulGateway9527_APP.class, args);
+  	}
+  }
+  
+  ```
+
+#### (2)测试
+
+* 启动7001,7002,7003这三个eureka server，在启动provider8001，最后启动9527
+* 根据zuul的yml配置，访问http://localhost:9527/prefix/mydept/dept/get/3，查看是否成功
+* 如果没在yml中配置zuul，则默认的访问方法是**hostname(zuul的主机名):port/微服务名(spring.application.name)/Rest访问地址**
+

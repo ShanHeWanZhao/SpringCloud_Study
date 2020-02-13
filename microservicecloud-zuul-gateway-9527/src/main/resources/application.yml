@@ -1,0 +1,27 @@
+server:
+  port: 9527
+# 微服务的名字
+spring:
+  application:
+    name: microservicecloud-zuul-gateway
+# eureka的相关配置
+eureka:
+  instance:
+    instance-id: zuulgateway-9572
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka/,http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/
+# 需要显示的该app的相关信息
+info:
+  app.name: microservice-SpringCloud-zuul-gateway
+  company.name: www.trd.com
+  build.artifactId: $project.artifactId$
+  build.version: $project.version$
+# zuul的基础配置
+zuul:
+  ignored-services: microservicecloud-dept   # 忽略全部用"*", 即ignored-services: "*"
+  prefix: /prefix                            #  访问Rest服务时，要加的公共前缀
+  routes:                                    # 不暴露微服务名，用其他访问路径代替设置
+    mydept.serviceId: microservicecloud-dept
+    mydept.path: /mydept/**
