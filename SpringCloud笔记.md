@@ -1330,6 +1330,8 @@ localhost:81/consumer/dept/get/4，对比查看到如下情况，则成功![](im
 
 ### 1.概述
 
+官网百科：https://github.com/Netflix/zuul/wiki
+
  Zuul包含了对**请求的路由和过滤**两个最主要的功能:
 
 > ​		**路由：负责将外部请求转发到具体的微服务实例上，是实现外部访问统一入口的基础。**
@@ -1339,6 +1341,8 @@ localhost:81/consumer/dept/get/4，对比查看到如下情况，则成功![](im
 > ​		Zuul和Eureka进行整合,将Zuul自身注册为Eureka服务治理下的应用,同时从Eureka中获得其他微服务的消息，也即以后的访问微服务都是通过Zuul跳转后获得。
 
 **注意: Zuul服务最终还是会注册进Eureka,提供=代理+路由+过滤三大功能**
+
+**有了zuul，我们可以更方便的进行权限管理**
 
 ### 2.基本配置
 
@@ -1459,4 +1463,3 @@ localhost:81/consumer/dept/get/4，对比查看到如下情况，则成功![](im
 * 启动7001,7002,7003这三个eureka server，在启动provider8001，最后启动9527
 * 根据zuul的yml配置，访问http://localhost:9527/prefix/mydept/dept/get/3，查看是否成功
 * 如果没在yml中配置zuul，则默认的访问方法是**hostname(zuul的主机名):port/微服务名(spring.application.name)/Rest访问地址**
-
