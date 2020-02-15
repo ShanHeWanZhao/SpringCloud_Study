@@ -1,0 +1,11 @@
+server:
+  port: 3344
+spring:
+  application:
+    name: microservicecloud-config     
+  cloud:
+    config:
+      server:
+        git:
+          # 用ssh方式Clone的url，插件有问题，所以这里用http方式Clone的url
+          uri: https://github.com/ShanHeWanZhao/microservicecloud-config.git

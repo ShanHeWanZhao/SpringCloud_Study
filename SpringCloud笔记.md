@@ -1326,7 +1326,7 @@ localhost:81/consumer/dept/get/4，对比查看到如下情况，则成功![](im
 
 * 进入图形界面，根据实心圆大小和颜色可查看到访问频率和状态，etc
 
-## 8.zuul路由网关
+## 八、zuul路由网关
 
 ### 1.概述
 
@@ -1463,3 +1463,344 @@ localhost:81/consumer/dept/get/4，对比查看到如下情况，则成功![](im
 * 启动7001,7002,7003这三个eureka server，在启动provider8001，最后启动9527
 * 根据zuul的yml配置，访问http://localhost:9527/prefix/mydept/dept/get/3，查看是否成功
 * 如果没在yml中配置zuul，则默认的访问方法是**hostname(zuul的主机名):port/微服务名(spring.application.name)/Rest访问地址**
+
+## 九、SpringCloud Config 分布式配置中心
+
+* **官方文档：https://spring.io/projects/spring-cloud-config，在learn中查看对应版本的Reference Doc.**
+
+* 1.3.4版本官方文档：https://cloud.spring.io/spring-cloud-static/spring-cloud-config/1.3.4.RELEASE/single/spring-cloud-config.html#_environment_repository
+
+### 1.问题
+
+​		微服务意味着要将单体应用中的业务拆分成一个个子服务, 每个服务的粒度相对较小，因此系统中会出现大量的服务。于每个服务都需要必要的配置信息才能运行，所以一 套**集中式的、动态的配置管理设施**是必不可少的。SpringCloud提供了ConfigServer就是解决这个问题
+
+![](img/springcloud_config.png)
+
+### 2.springcloud-config简述
+
+#### (1)是什么
+
+> ​		SpringCloud Config为微服务架构中的微服务提供集中化的外部配置支持,配置服务器**为各个不同微服务应用的所有环境提供了一个中心化的外部配置。**
+
+#### (2)如何使用
+
+>​		SpringCloud Config分为**服务端和客户端**两部分。
+>​		 **服务端也称为分布式配置中心，它是一个独立的微服务应用**，用来连接配置服务器并为客户端提供获取配置信息,加密/解密信息等访问接口
+>​		**客户端**则是通过指定的配置中心来管理应用资源，以及与业务相关的配置内容，并在**启动的时候从配置中心获取和加载配置信息**，配置服务器**默认采用git来存储配置信息**，这样就有助于对环境配置进行版本管理，并且**可以通过git客户端工具来方便的管理和访问配置内容**。
+
+#### (3)能干嘛
+
+* 集中管理配置文件
+* 不同环境不同配置， 动态化的配置更新，分环境部署比如：dev，test， prod，beta，release 
+* 运行期间动态调整配置，不再需要在每个服务部署的机器上编写配置文件，服务会向配置中心统一拉取配置自己的信息
+* 当配置发生变动时，服务不需要重启即可感知到配置的变化并应用新的配置
+* 将配置信息以REST接口的形式暴露
+
+### 3.springcloud Config Server端配置与测试
+
+#### (1)GitHub新建仓库microservicecloud-config的Repository
+
+地址：https://github.com/ShanHeWanZhao/microservicecloud-config
+
+#### (2)利用ssh方式clone到本地仓库
+
+先要保证有ssh公钥和私钥，并在github上设置了公钥
+
+#### (3)本地仓库新建application.yml文件，并push到远程仓库
+
+application.yml内容
+
+```yaml
+#  请保存为UTF-8格式
+spring:
+  profiles:
+    active: dev
+---
+spring:
+  profiles: dev # 开发环境
+  application:
+    name: microservicecloud-config-dev
+---
+spring:
+  profiles: test # 测试环境  
+  application:
+    name: microservicecloud-config-test
+
+```
+
+#### (4)新建microservicecloud-config-3344模块
+
+* pom文件
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <project xmlns="http://maven.apache.org/POM/4.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <parent>
+          <artifactId>microservicecloud</artifactId>
+          <groupId>com.trd.springcloud</groupId>
+          <version>1.0</version>
+          <relativePath>../microservicecloud/pom.xml</relativePath>
+      </parent>
+      <modelVersion>4.0.0</modelVersion>
+  
+      <artifactId>microservicecloud-config-3344</artifactId>
+  
+        <dependencies>
+           <!-- 熔断 Hystrix-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-hystrix</artifactId>
+          </dependency>
+  
+          <!-- Eureka Client-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-eureka</artifactId>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-zuul</artifactId>
+          </dependency>   
+          <!-- springCloud Config Server,它有web的starter-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-config-server</artifactId>
+          </dependency>
+          <!--Spring提供的热部署组件-->
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-devtools</artifactId>
+          </dependency>
+            
+      </dependencies>
+       
+  </project>
+  ```
+
+* application.yml
+
+  ```yaml
+  server:
+    port: 3344
+  spring:
+    application:
+      name: microservicecloud-config     
+    cloud:
+      config:
+        server:
+          git:
+            # 用ssh方式Clone的url，插件有问题，所以这里用http方式Clone的url
+            uri: https://github.com/ShanHeWanZhao/microservicecloud-config.git
+  
+  ```
+
+* 启动类
+
+  ```java
+  @SpringBootApplication
+  // 开启config server端
+  @EnableConfigServer
+  public class ConfigServer3344_APP {
+  	public static void main(String[] args) {
+  		SpringApplication.run(ConfigServer3344_APP.class, args);
+  	}
+  }
+  ```
+
+#### (5)测试
+
+* 启动3344
+* 访问http://localhost:3344/application/test/master，是否读取到application.yml中test区域的配置
+* 访问http://localhost.com:3344/application-dev.yml，是否读取到application.yml中dev区域的配置
+* 访问http://localhost:3344/master/application-dev.yml，是否读取到application.yml中dev区域的配置
+* 访问http://localhost.com:3344/application-xxxx.yml (不存在的配置)，读取到默认配置
+
+![](img/configserver.png)
+
+### 4.SpringCloud Config client端配置与测试
+
+#### (1)本地git仓库新建microservicecloud-config-client.yml文件，并push到remote Rep
+
+内容：
+
+```yaml
+#  保存为UTF-8格式
+server:
+  profiles:
+    active: dev
+---
+server: 
+  port: 8201
+spring:
+  profiles: dev   # 开发环境
+  application:
+    name: microservicecloud-config-client-remoteDev           # 远程仓库Dev环境名
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-dev.com:7001/eureka/         # 不用配置hosts文件，测试使用
+---
+server: 
+  port: 8202
+spring:
+  profiles: test #开发环境
+  application:
+    name: microservicecloud-config-client-remoteTest          # 远程仓库Test环境名
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-test.com:7001/eureka/         # 不用配置hosts文件，测试使用
+
+```
+
+#### (2)新建microservicecloud-config-client-820x模块
+
+* pom文件
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <project xmlns="http://maven.apache.org/POM/4.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <parent>
+          <artifactId>microservicecloud</artifactId>
+          <groupId>com.trd.springcloud</groupId>
+          <version>1.0</version>
+          <relativePath>../microservicecloud/pom.xml</relativePath>
+      </parent>
+      <modelVersion>4.0.0</modelVersion>
+  
+      <artifactId>microservicecloud-config-client-820x</artifactId>
+  
+       
+      <dependencies>
+      <!--lombok的jar包-->
+      <dependency>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok</artifactId>
+      </dependency>
+      <!--config client 的启动器-->
+      <dependency>
+          <groupId>org.springframework.cloud</groupId>
+          <artifactId>spring-cloud-starter-config</artifactId>
+      </dependency>
+  
+      <!--zuul依赖-->
+      <dependency>
+          <groupId>org.springframework.cloud</groupId>
+          <artifactId>spring-cloud-starter-eureka</artifactId>
+      </dependency>
+      <dependency>
+          <groupId>org.springframework.cloud</groupId>
+          <artifactId>spring-cloud-starter-zuul</artifactId>
+      </dependency>
+  
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-actuator</artifactId>
+      </dependency>
+  
+      <!--Hystrix容错-->
+      <dependency>
+          <groupId>org.springframework.cloud</groupId>
+          <artifactId>spring-cloud-starter-hystrix</artifactId>
+      </dependency>
+  
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-web</artifactId>
+      </dependency>
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-test</artifactId>
+      </dependency>
+  
+      <!--热部署 修改后立即生效-->
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-devtools</artifactId>
+      </dependency>
+  
+  </dependencies> 
+  </project>
+  ```
+
+* **bootstrap.yml文件说明及配置（我这里并没有用到application.yml）**
+
+  >applicaiton.yml：是用户级的资源配置项
+  >bootstrap.yml：是**系统级的，优先级更加高**
+  >
+  >​		**Spring Cloud会创建一个Bootstrap Context，作为Spring应用的Application Context的父上下文。初始化的时候，Bootstrap Context负责从外部源加载配置属性并解析配置。这两个上下文共享一个从外部获取的Environment。Bootstrap属性有高优先级，默认情况下，它们不会被本地配置覆盖。** 
+  >
+  >​		Bootstrap context和Application Context有着不同的约定。
+  >​		所以新增了一个bootstrap.yml文件，**保证Bootstrap Context和Application Context配置的分离。**
+
+  ```yaml
+  spring:
+    cloud:
+      config:
+        # remote仓库中的branch名
+        label: master
+        #  本次访问的配置项（通过修改这里读取remote仓库中配置文件里不同的区域）
+        profile: test
+        # 需要从remote仓库上读取的资源名称，注意没有yml后缀名
+        name: microservicecloud-config-client
+        # 本微服务启动后先去找3344号服务，通过SpringCloudConfig获取GitHub的服务地址
+        # config-3344.com也在hosts文件中做了映射的，映射到127.0.0.1(本机)
+        uri: http://config-3344.com:3344
+  ```
+
+* 启动类就只用个@SpringBootApplication注解就行
+
+* bean
+
+  ```java
+  // 这个类的作用只是结合浏览器的json插件，查看信息更有层次结构而已
+  @Data
+  @Accessors(chain = true)
+  public class RemoteConfig {
+  	private String applicationName;
+  	private String eurekaServer;
+  	private String port;
+  }
+  
+  ```
+
+* 新建RestController类，验证
+
+  ```java
+  @RestController
+  public class ConfigClientRestController {
+  
+  	/*
+  		这三个配置都在远程仓库里，用spEL表达式取出值，
+  			测试是否从远程仓库中读取到了配置文件
+  	 */
+  	@Value("${spring.application.name}")
+  	private String applicationName;
+  
+  	@Value("${eureka.client.service-url.defaultZone}")
+  	private String eurekaServers;
+  
+  	@Value("${server.port}")
+  	private String port;
+  
+  	// 前段访问测试
+  	@GetMapping("config")
+  	public RemoteConfig getConfig(){
+  		RemoteConfig config = new RemoteConfig().setApplicationName(applicationName)
+  				.setEurekaServer(eurekaServers)
+  				.setPort(port);
+  		System.out.println(config);
+  		return config;
+  	}
+  }
+  ```
+
+#### (3)测试
+
+* 启动3344,820x
+
+![](img/configclienttest.png)

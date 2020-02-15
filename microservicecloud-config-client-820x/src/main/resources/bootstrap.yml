@@ -1,0 +1,12 @@
+spring:
+  cloud:
+    config:
+      # remote仓库中的branch名
+      label: master
+      #  本次访问的配置项（通过修改这里读取remote仓库中配置文件里不同的区域）
+      profile: test
+      # 需要从remote仓库上读取的资源名称，注意没有yml后缀名
+      name: microservicecloud-config-client
+      # 本微服务启动后先去找3344号服务，通过SpringCloudConfig获取GitHub的服务地址
+      # config-3344.com也在hosts文件中做了映射的，映射到127.0.0.1(本机)
+      uri: http://config-3344.com:3344

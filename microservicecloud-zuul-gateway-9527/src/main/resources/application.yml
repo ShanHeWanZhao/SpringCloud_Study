@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: microservicecloud-zuul-gateway
+  profiles:
+    active:
 # eureka的相关配置
 eureka:
   instance:
