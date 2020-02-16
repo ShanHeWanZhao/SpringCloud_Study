@@ -2,43 +2,26 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <artifactId>microservicecloud</artifactId>
         <groupId>com.trd.springcloud</groupId>
         <version>1.0</version>
         <relativePath>../microservicecloud/pom.xml</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
+    <artifactId>microservicecloud-config-server-3344</artifactId>
 
-    <artifactId>microservicecloud-config-3344</artifactId>
-
-      <dependencies>
-         <!-- 熔断 Hystrix-->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-hystrix</artifactId>
-        </dependency>
-
-        <!-- Eureka Client-->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-eureka</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-zuul</artifactId>
-        </dependency>   
-        <!-- springCloud Config Server,它有web的starter-->
+    <dependencies>
+        <!-- springCloud Config Server,它有web的starter-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-config-server</artifactId>
         </dependency>
-        <!--Spring提供的热部署组件-->
+        <!--热部署 修改后立即生效-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
         </dependency>
-          
     </dependencies>
-     
 </project>
