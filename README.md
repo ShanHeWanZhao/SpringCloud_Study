@@ -3,5 +3,5 @@
 
 * 码云端笔记（访问速度快点）：[https://gitee.com/code_zhisheng/SpringCloud_Study/blob/master/SpringCloud%E7%AC%94%E8%AE%B0.md](https://gitee.com/code_zhisheng/SpringCloud_Study/blob/master/SpringCloud笔记.md)
 
-* GitHub端笔记：[https://github.com/ShanHeWanZhao/SpringCloud_Study/blob/master/SpringCloud%E7%AC%94%E8%AE%B0.md](https://github.com/ShanHeWanZhao/SpringCloud_Study/blob/master/SpringCloud笔记.md)
+* GitHub端笔记（图片可能加载不出来）：[https://github.com/ShanHeWanZhao/SpringCloud_Study/blob/master/SpringCloud%E7%AC%94%E8%AE%B0.md](https://github.com/ShanHeWanZhao/SpringCloud_Study/blob/master/SpringCloud笔记.md)
 
