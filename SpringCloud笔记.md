@@ -1528,7 +1528,7 @@ spring:
 
 ```
 
-#### (4)新建microservicecloud-config-3344模块
+#### (4)新建microservicecloud-config-server-3344模块
 
 * pom文件
 
@@ -1537,48 +1537,31 @@ spring:
   <project xmlns="http://maven.apache.org/POM/4.0.0"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <modelVersion>4.0.0</modelVersion>
+  
       <parent>
           <artifactId>microservicecloud</artifactId>
           <groupId>com.trd.springcloud</groupId>
           <version>1.0</version>
           <relativePath>../microservicecloud/pom.xml</relativePath>
       </parent>
-      <modelVersion>4.0.0</modelVersion>
+      <artifactId>microservicecloud-config-server-3344</artifactId>
   
-      <artifactId>microservicecloud-config-3344</artifactId>
-  
-        <dependencies>
-           <!-- 熔断 Hystrix-->
-          <dependency>
-              <groupId>org.springframework.cloud</groupId>
-              <artifactId>spring-cloud-starter-hystrix</artifactId>
-          </dependency>
-  
-          <!-- Eureka Client-->
-          <dependency>
-              <groupId>org.springframework.cloud</groupId>
-              <artifactId>spring-cloud-starter-eureka</artifactId>
-          </dependency>
-          <dependency>
-              <groupId>org.springframework.cloud</groupId>
-              <artifactId>spring-cloud-starter-zuul</artifactId>
-          </dependency>   
-          <!-- springCloud Config Server,它有web的starter-->
+      <dependencies>
+          <!-- springCloud Config Server,它有web的starter-->
           <dependency>
               <groupId>org.springframework.cloud</groupId>
               <artifactId>spring-cloud-config-server</artifactId>
           </dependency>
-          <!--Spring提供的热部署组件-->
+          <!--热部署 修改后立即生效-->
           <dependency>
               <groupId>org.springframework.boot</groupId>
               <artifactId>spring-boot-devtools</artifactId>
           </dependency>
-            
       </dependencies>
-       
   </project>
   ```
-
+  
 * application.yml
 
   ```yaml
@@ -1626,33 +1609,34 @@ spring:
 内容：
 
 ```yaml
-#  保存为UTF-8格式
-server:
+# 保存为UTF-8编码
+spring:
   profiles:
     active: dev
 ---
-server: 
+# dev环境
+server:
   port: 8201
 spring:
-  profiles: dev   # 开发环境
+  profiles: dev
   application:
-    name: microservicecloud-config-client-remoteDev           # 远程仓库Dev环境名
+    name: microservicecloud-config-client-remoteDev       # remote仓库Dev环境名
 eureka:
   client:
     service-url:
-      defaultZone: http://eureka-dev.com:7001/eureka/         # 不用配置hosts文件，测试使用
+      defaultZone: http://eureka-dev.com:7001/erueka/   # 不用在hosts文件中映射，仅测试而已
 ---
-server: 
+# test环境
+server:
   port: 8202
 spring:
-  profiles: test #开发环境
+  profiles: test
   application:
-    name: microservicecloud-config-client-remoteTest          # 远程仓库Test环境名
+    name: microservicecloud-config-client-remoteTest       # remote仓库Dev环境名
 eureka:
   client:
     service-url:
-      defaultZone: http://eureka-test.com:7001/eureka/         # 不用配置hosts文件，测试使用
-
+      defaultZone: http://eureka-test.com:7002/erueka/   # 不用在hosts文件中映射，仅测试而已
 ```
 
 #### (2)新建microservicecloud-config-client-820x模块
@@ -1674,60 +1658,34 @@ eureka:
   
       <artifactId>microservicecloud-config-client-820x</artifactId>
   
-       
       <dependencies>
-      <!--lombok的jar包-->
-      <dependency>
-          <groupId>org.projectlombok</groupId>
-          <artifactId>lombok</artifactId>
-      </dependency>
-      <!--config client 的启动器-->
-      <dependency>
-          <groupId>org.springframework.cloud</groupId>
-          <artifactId>spring-cloud-starter-config</artifactId>
-      </dependency>
+          <!--lombok的jar包-->
+          <dependency>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+          </dependency>
+          <!--config client 的启动器-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-config</artifactId>
+          </dependency>
+          <!--web的启动器-->
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-web</artifactId>
+          </dependency>
+          <!--热部署 修改后立即生效-->
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-devtools</artifactId>
+          </dependency>
   
-      <!--zuul依赖-->
-      <dependency>
-          <groupId>org.springframework.cloud</groupId>
-          <artifactId>spring-cloud-starter-eureka</artifactId>
-      </dependency>
-      <dependency>
-          <groupId>org.springframework.cloud</groupId>
-          <artifactId>spring-cloud-starter-zuul</artifactId>
-      </dependency>
+      </dependencies>
   
-      <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-actuator</artifactId>
-      </dependency>
-  
-      <!--Hystrix容错-->
-      <dependency>
-          <groupId>org.springframework.cloud</groupId>
-          <artifactId>spring-cloud-starter-hystrix</artifactId>
-      </dependency>
-  
-      <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-web</artifactId>
-      </dependency>
-      <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-test</artifactId>
-      </dependency>
-  
-      <!--热部署 修改后立即生效-->
-      <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-devtools</artifactId>
-      </dependency>
-  
-  </dependencies> 
   </project>
   ```
-
-* **bootstrap.yml文件说明及配置（我这里并没有用到application.yml）**
+  
+* **bootstrap.yml和application.yml文件说明及配置**
 
   >applicaiton.yml：是用户级的资源配置项
   >bootstrap.yml：是**系统级的，优先级更加高**
@@ -1737,20 +1695,35 @@ eureka:
   >​		Bootstrap context和Application Context有着不同的约定。
   >​		所以新增了一个bootstrap.yml文件，**保证Bootstrap Context和Application Context配置的分离。**
 
-  ```yaml
-  spring:
-    cloud:
-      config:
-        # remote仓库中的branch名
-        label: master
-        #  本次访问的配置项（通过修改这里读取remote仓库中配置文件里不同的区域）
-        profile: test
-        # 需要从remote仓库上读取的资源名称，注意没有yml后缀名
-        name: microservicecloud-config-client
-        # 本微服务启动后先去找3344号服务，通过SpringCloudConfig获取GitHub的服务地址
-        # config-3344.com也在hosts文件中做了映射的，映射到127.0.0.1(本机)
-        uri: http://config-3344.com:3344
-  ```
+  **这里的application.yml的配置只是测试bootstrap.yml文件相同配置会不会覆盖掉自己（会）**
+
+  * bootstrap.yml
+
+    ```yaml
+    spring:
+      cloud:
+        config:
+          # remote仓库中的branch名
+          label: master
+          #  本次访问的配置项（通过修改这里读取remote仓库中配置文件里不同的区域）
+          profile: test
+          # 需要从remote仓库上读取的资源名称，注意没有yml后缀名
+          name: microservicecloud-config-client
+          # 本微服务启动后先去找3344号服务，通过SpringCloudConfig获取GitHub的服务地址
+          # config-3344.com也在hosts文件中做了映射的，映射到127.0.0.1(本机)
+          uri: http://config-3344.com:3344
+    ```
+
+  * application.yml
+
+    ```yaml
+    # bootstrap.yml文件读取到远程仓库中的配置文件时，spring.application.name会覆盖掉这里的
+    spring:
+      application:
+        name: localConfig-client-appname
+    ```
+
+    
 
 * 启动类就只用个@SpringBootApplication注解就行
 

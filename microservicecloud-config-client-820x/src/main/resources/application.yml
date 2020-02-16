@@ -1,3 +1,4 @@
+# bootstrap.yml文件读取到远程仓库中的配置文件时，spring.application.name会覆盖掉这里的
 spring:
   application:
     name: localConfig-client-appname
