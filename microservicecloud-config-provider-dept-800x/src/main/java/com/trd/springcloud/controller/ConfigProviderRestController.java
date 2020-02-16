@@ -50,7 +50,7 @@ public class ConfigProviderRestController {
 		return config;
 	}
 
-
+	// 数据库切换的测试
 	@GetMapping("dept/list")
 	public List<Dept> list(){
 		return deptService.findAll();

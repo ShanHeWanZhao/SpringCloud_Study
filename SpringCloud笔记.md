@@ -14,6 +14,8 @@
 >
 > ​	2.2、API：https://www.springcloud.cc/spring-cloud-dalston.html
 >
+> ​	2.3、英文API：https://cloud.spring.io/spring-cloud-static/spring-cloud.html#_features
+>
 > 3.springcloud中文网：https://www.springcloud.cc/
 
 ## 二、项目版本
@@ -110,6 +112,43 @@
     </dependencyManagement>
 </project>
 ```
+
+* pom中后加的module解释
+
+  ```xml
+  <modules>
+          <!--公共模块-->
+          <module>../microservicecloud-api</module>
+          <!-- 3个服务的提供者-->
+          <module>../microservicecloud-provider-dept-8001</module>
+          <module>../microservicecloud-provider-dept-8002</module>
+          <module>../microservicecloud-provider-dept-8003</module>
+          <!-- RestTemplate模式，服务的消费-->
+          <module>../microservicecloud-consumer-dept-80</module>
+          <!--3个eureka server,集群-->
+          <module>../microservicecloud-eureka-7001</module>
+          <module>../microservicecloud-eureka-7002</module>
+          <module>../microservicecloud-eureka-7003</module>
+          <!--Rest接口，feign的服务消费模块-->
+          <module>../microservicecloud-consumer-dept-feign-81</module>
+          <!--服务熔断-->
+          <module>../microservicecloud-provider-dept-hystrix-8001</module>
+          <!--服务熔断的图形化监控指示板-->
+          <module>../microservicecloud-consumer-hystrix-dashboard-9001</module>
+          <!--路由-->
+          <module>../microservicecloud-zuul-gateway-9527</module>
+          <!--config的server-->
+          <module>../microservicecloud-config-server-3344</module>
+          <!--config的client端测试-->
+          <module>../microservicecloud-config-client-820x</module>
+          <!--config的实战-->
+          <module>../microservicecloud-config-eureka-server-700x</module>
+          <module>../microservicecloud-config-provider-dept-800x</module>
+      </modules>
+  
+  ```
+
+  
 
 ### 2、通用工程（microservicecloud-api）
 
@@ -345,7 +384,7 @@ server:
 
 ### 2、Eureka服务端的配置（microservicecloud-eureka-7001）
 
-	* pom文件
+* pom文件
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -383,7 +422,7 @@ server:
 </project>
 ```
 
-	* application.yml文件
+*  application.yml文件
 
 ```yaml
 server:
@@ -399,8 +438,7 @@ eureka:
       defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/ #设置与eureka server 交互的地址查询服务和注册服务都需要依赖的地址
 ```
 
-	* 在该项目的**启动类上加@EnableEurekaServer注解**，用来**启动Eureka的服务端，接受其它微服务的注册**
-	* 测试：浏览器打开 localhost:7001,出现![](img/Spring_Eureka_symbol.png)
+* 在该项目的**启动类上加@EnableEurekaServer注解**，用来**启动Eureka的服务端，接受其它微服务的注册**测试：浏览器打开 localhost:7001,出现![](img/Spring_Eureka_symbol.png)
 
 标准，则成功
 
@@ -1776,4 +1814,453 @@ eureka:
 
 * 启动3344,820x
 
-![](img/configclienttest.png)
+![##](img/configclienttest.png)
+
+## 十、SpringCloud Config结合Eureka实战
+
+### 1、Remote Repository地址（和上面的一样）
+
+https://github.com/ShanHeWanZhao/microservicecloud-config
+
+### 2、准备Eureka Server模块
+
+#### (1)本地仓库新建microservicecloud-config-eureka-server.yml文件，作为eureka server的配置文件，并push到remote仓库中
+
+```yaml
+spring:
+  profiles:
+    active: dev
+---
+# 配置环境为dev环境
+# 该eureka server的port为7001，注册地址用7001的
+server:
+  port: 7001     #   注册中心占用7001端口,冒号后面必须要有空格
+spring:
+  profiles: dev
+  application:
+    name: microservicecloud-config-eureka-server-remoteDev
+eureka:
+  instance:
+    hostname: eureka7001.com         # eureka服务端的实例名称,本机注册就是localhost
+  client:
+    register-with-eureka: false      #   不向注册中心注册自己
+    fetch-registry: false            #  不通过eureka获取注册信息
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka/
+---
+# 配置环境为test环境
+# 该eureka server的port为7002，注册地址用7002的
+spring:
+  profiles: test
+  application:
+    name: microservicecloud-config-eureka-server-remoteTest
+server:
+  port: 7002
+# eureka server 相关配置
+eureka:
+  instance:
+    hostname: eureka7002.com         # eureka服务端的实例名称,本机注册就是localhost
+  client:
+    register-with-eureka: false      #   不向注册中心注册自己
+    fetch-registry: false            #  不通过eureka获取注册信息
+    service-url:
+      defaultZone: http://eureka7002.com:7002/eureka/
+```
+
+#### (2)新建microservicecloud-config-eureka-server-700x模块
+
+* pom文件
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <project xmlns="http://maven.apache.org/POM/4.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <parent>
+          <artifactId>microservicecloud</artifactId>
+          <groupId>com.trd.springcloud</groupId>
+          <version>1.0</version>
+          <relativePath>../microservicecloud/pom.xml</relativePath>
+      </parent>
+      <modelVersion>4.0.0</modelVersion>
+  
+      <artifactId>microservicecloud-config-eureka-server-700x</artifactId>
+  
+      <dependencies>
+          <!--eureka-server 服务端-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-eureka-server</artifactId>
+          </dependency>
+          <!--config client 的启动器-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-config</artifactId>
+          </dependency>
+          <!--lombok的jar包-->
+          <dependency>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+          </dependency>
+          <!--热部署devtools 修改后立即生效-->
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-devtools</artifactId>
+          </dependency>
+          <!--web的启动器-->
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-web</artifactId>
+          </dependency>
+      </dependencies>
+  </project>
+  ```
+
+* bootstrap.yml（连接远程config使用）
+
+  ```yaml
+  spring:
+    cloud:
+      config:
+        name: microservicecloud-config-eureka-server
+        label: master
+        uri: http://config-3344.com:3344
+        profile: test     # 和800x保持一致
+  ```
+
+* 启动类
+
+  ```java
+  @SpringBootApplication
+  // 开启eureka server的服务
+  @EnableEurekaServer
+  public class ConfigEurekaServer700x_APP {
+  	public static void main(String[] args) {
+  		SpringApplication.run(ConfigEurekaServer700x_APP.class, args);
+  	}
+  }
+  ```
+
+* bean
+
+  ```java
+  @Data
+  @Accessors(chain = true)
+  public class RemoteConfig {
+  	private String serverPort;
+  	private String profiles;
+  	private String applicationName;
+  	private String eurekaHostname;
+  	private String eurekaServiceUrl;
+  }
+  ```
+
+* RestController类，验证远程配置是否成功绑定
+
+  ```java
+  @RestController
+  public class ConfigEurekaServerRestController {
+      /*
+  		将从远程仓库中读取到的配置取出来并赋值
+  	 */
+  	@Value("${server.port}")
+  	private String serverPort;
+  	@Value("${spring.profiles}")
+  	private String profiles;
+  	@Value("${spring.application.name}")
+  	private String applicationName;
+  	@Value("${eureka.instance.hostname}")
+  	private String eurekaHostname;
+  	@Value("${eureka.client.service-url.defaultZone}")
+  	private String eurekaServiceUrl;
+  
+  	/*
+  		由于eureka server会导入jackson-dataformat-xml包,而前端的request
+  			中Accept请求头的xml在前，所以如果不指定produces，返回的是xml格式，而不是json
+  	 */
+  	@GetMapping(value = "/config", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  	public RemoteConfig getConfig(){
+  		RemoteConfig config = new RemoteConfig();
+  		config.setApplicationName(applicationName)
+  				.setEurekaHostname(eurekaHostname)
+  				.setEurekaServiceUrl(eurekaServiceUrl)
+  				.setProfiles(profiles)
+  				.setServerPort(serverPort);
+  		return config;
+  	}
+  }
+  ```
+
+#### (3)测试eureka server是否成功读取到remote仓库指定文件的配置
+
+* 先启动3344，在启动700x
+* ![](img/config_eureka_server_test.png)
+
+* 如上图，700x模块的配置和读取成功
+
+### 3、准备Eureka Client模块
+
+#### (1)本地仓库新建microservicecloud-config-provider-dept.yml文件，作为eureka client的配置文件，并push到remote仓库中
+
+```yaml
+spring:
+  profiles:
+    active: dev
+---
+# 该配置注册到7001的eureka server
+# 访问端口为8001，数据库为db01
+# 配置环境为dev环境
+server:
+  port: 8001
+mybatis:
+  type-aliases-package: com.trd.springcloud.entities
+  mapper-locations:
+  - classpath:mybatis/mapper/*.xml
+  configuration:
+    cache-enabled: true
+spring:
+  profiles: dev                                           # dev环境
+  application:
+    name: microservicecloud-config-dept-remoteDev        # remote的Dev名字
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: 123456
+    url: jdbc:mysql://localhost:3306/clouddb01           # 数据库修改
+
+#客户端注册进eureka服务列表
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka
+  instance:
+    instance-id: config-dept:8001         # Eureka的服务端的该微服务名Status名修改
+    prefer-ip-address: true
+info:
+  app.name: microservice-SpringCloudConfig-DB01        # 数据库名修改
+  company.name: www.trd.com
+  build.artifactId: $project.artifactId$
+  build.version: $project.version$
+---
+# 该配置注册到7002的eureka server
+# 访问端口为8002，数据库为db02
+# 配置环境为test环境
+server:
+  port: 8002
+mybatis:
+  type-aliases-package: com.trd.springcloud.entities
+  mapper-locations:
+  - classpath:mybatis/mapper/*.xml
+  configuration:
+    cache-enabled: true
+spring:
+  profiles: test                                           # test环境
+  application:
+    name: microservicecloud-config-dept-remoteTest          # remote的Test名字
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: 123456
+    url: jdbc:mysql://localhost:3306/clouddb02           # 数据库修改
+
+#客户端注册进eureka服务列表
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka7002.com:7002/eureka
+  instance:
+    instance-id: config-dept:8002                 # Eureka的服务端的该微服务名Status名修改
+    prefer-ip-address: true
+info:
+  app.name: microservice-SpringCloudConfig-DB02      # 数据库名修改
+  company.name: www.trd.com
+  build.artifactId: $project.artifactId$
+  build.version: $project.version$
+```
+
+#### (2)模仿8001模块，新建microservicecloud-config-provider-dept-800x模块
+
+* pom文件
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <project xmlns="http://maven.apache.org/POM/4.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <parent>
+          <artifactId>microservicecloud</artifactId>
+          <groupId>com.trd.springcloud</groupId>
+          <version>1.0</version>
+          <relativePath>../microservicecloud/pom.xml</relativePath>
+      </parent>
+      <modelVersion>4.0.0</modelVersion>
+  
+      <artifactId>microservicecloud-config-provider-dept-800x</artifactId>
+  
+      <dependencies>
+          <!--引入自己编写的api模块的jar包,版本跟着项目走-->
+          <dependency>
+              <groupId>com.trd.springcloud</groupId>
+              <artifactId>microservicecloud-api</artifactId>
+              <version>${project.version}</version>
+          </dependency>
+          <!--mysql驱动-->
+          <dependency>
+              <groupId>mysql</groupId>
+              <artifactId>mysql-connector-java</artifactId>
+          </dependency>
+          <!--druid连接池-->
+          <dependency>
+              <groupId>com.alibaba</groupId>
+              <artifactId>druid</artifactId>
+          </dependency>
+          <!--mybatis整合springboot的starter-->
+          <dependency>
+              <groupId>org.mybatis.spring.boot</groupId>
+              <artifactId>mybatis-spring-boot-starter</artifactId>
+          </dependency>
+          <!--springboot的web的starter-->
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-web</artifactId>
+          </dependency>
+          <!--devtools热部署，修改后立即生效-->
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-devtools</artifactId>
+          </dependency>
+          <!--eureka client, 将微服务provider注册进eureka-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-eureka</artifactId>
+          </dependency>
+          <!--config client包-->
+          <dependency>
+              <groupId>org.springframework.cloud</groupId>
+              <artifactId>spring-cloud-starter-config</artifactId>
+          </dependency>
+          <!--actuator（制动器），监控自信息完善-->
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-actuator</artifactId>
+          </dependency>
+  
+      </dependencies>
+  </project>
+  ```
+
+* bootstrap.yml
+
+  ```yaml
+  spring:
+    cloud:
+      config:
+        name: microservicecloud-config-provider-dept
+        label: master
+        uri: http://config-3344.com:3344
+        profile: dev       # 和700x保持一致
+  ```
+
+* 启动类
+
+  ```java
+  @MapperScan("com.trd.springcloud.dao")
+  @SpringBootApplication
+  @EnableEurekaClient
+  public class ConfigDept800x_APP {
+  	public static void main(String[] args) {
+  		SpringApplication.run(ConfigDept800x_APP.class, args);
+  	}
+  }
+  ```
+
+* 测试bean
+
+  ```java
+  @Data
+  @Accessors(chain = true)
+  public class RemoteConfigProvider {
+  	private String serverPort;
+  	private String applicationName;
+  	private String databaseUrl;
+  	private String eurekaInstanceId;
+  	private String typeAliasPackage;
+  	private String profiles;
+  	private String infoAppName;
+  }
+  ```
+
+* RestController类
+
+  ```java
+  @RestController
+  public class ConfigProviderRestController {
+  	// service层的依赖
+  	@Autowired
+  	private DeptService deptService;
+  
+  	// 去出配置文件的值
+  	@Value("${server.port}")
+  	private String serverPort;
+  	@Value("${spring.application.name}")
+  	private String applicationName;
+  	@Value("${spring.datasource.url}")
+  	private String databaseUrl;
+  	@Value("${eureka.instance.instance-id}")
+  	private String eurekaInstanceId;
+  	@Value("${mybatis.type-aliases-package}")
+  	private String typeAliasPackage;
+  	@Value("${spring.profiles}")
+  	private String profiles;
+  	@Value("${info.app.name}")
+  	private String infoAppName;
+  
+  	// rest测试
+  	@GetMapping("/config")
+  	public RemoteConfigProvider getConfig(){
+  		RemoteConfigProvider config = new RemoteConfigProvider();
+  		config.setApplicationName(applicationName)
+  				.setDatabaseUrl(databaseUrl)
+  				.setEurekaInstanceId(eurekaInstanceId)
+  				.setInfoAppName(infoAppName)
+  				.setProfiles(profiles)
+  				.setTypeAliasPackage(typeAliasPackage)
+  				.setServerPort(serverPort);
+  		return config;
+  	}
+  	// 数据库切换的测试
+  	@GetMapping("dept/list")
+  	public List<Dept> list(){
+  		return deptService.findAll();
+  	}
+  }
+  ```
+
+#### (3)测试eureka client是否成功读取到remote仓库指定文件的配置
+
+* 先启动3344，再启动800x
+* ![](img/config_eureka_client_test.png)
+
+* 如上图，则800x模块的配置和读取成功
+
+### 4、联合测试
+
+#### (1)先启动3344（config server端），再启动700x（eureka server + config client端），再启动800x(eureka client + config client端)
+
+#### (2)设置700x和800x的bootstrap.yml中profiles都为test
+
+* ![](img/config_dev_dbaccess.png)
+
+* ![](img/config_dev_eureka.png)
+
+* 访问目标数据库（1号库）成功，目标eureka client注册到目标eureka server成功
+
+#### (3)设置700x和800x的bootstrap.yml中profiles都为dev
+
+* ![](img/config_test_dbaccess.png)
+
+* ![](img/config_test_eureka.png)
+
+* 访问目标数据库（2号库）成功，目标eureka client注册到目标eureka server成功

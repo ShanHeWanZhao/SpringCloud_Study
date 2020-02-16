@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class ConfigEurekaServerRestController {
+	/*
+		将从远程仓库中读取到的配置取出来并赋值
+	 */
 	@Value("${server.port}")
 	private String serverPort;
 	@Value("${spring.profiles}")
