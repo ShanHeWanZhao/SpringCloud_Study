@@ -1,13 +1,13 @@
 package com.trd.springcloud.controller;
 
-import com.trd.springcloud.bean.RemoteConfig;
+import com.trd.springcloud.domain.RemoteConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Trd
- * @date 2020-02-15 13:07
+ * @date 2020-02-16 13:15
  */
 @RestController
 public class ConfigClientRestController {
