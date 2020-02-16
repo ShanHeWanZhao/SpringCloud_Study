@@ -77,6 +77,35 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+    <modules>
+        <!--公共模块-->
+        <module>../microservicecloud-api</module>
+        <!-- 3个服务的提供者-->
+        <module>../microservicecloud-provider-dept-8001</module>
+        <module>../microservicecloud-provider-dept-8002</module>
+        <module>../microservicecloud-provider-dept-8003</module>
+        <!-- RestTemplate模式，服务的消费-->
+        <module>../microservicecloud-consumer-dept-80</module>
+        <!--3个eureka server,集群-->
+        <module>../microservicecloud-eureka-7001</module>
+        <module>../microservicecloud-eureka-7002</module>
+        <module>../microservicecloud-eureka-7003</module>
+        <!--Rest接口，feign的服务消费模块-->
+        <module>../microservicecloud-consumer-dept-feign-81</module>
+        <!--服务熔断-->
+        <module>../microservicecloud-provider-dept-hystrix-8001</module>
+        <!--服务熔断的图形化监控指示板-->
+        <module>../microservicecloud-consumer-hystrix-dashboard-9001</module>
+        <!--路由-->
+        <module>../microservicecloud-zuul-gateway-9527</module>
+        <!--config的server-->
+        <module>../microservicecloud-config-server-3344</module>
+        <!--config的client端测试-->
+        <module>../microservicecloud-config-client-820x</module>
+        <!--config的实战-->
+        <module>../microservicecloud-config-eureka-server-700x</module>
+        <module>../microservicecloud-config-provider-dept-800x</module>
+    </modules>
 
     <build>
         <!--finalName 父工程名称-->
