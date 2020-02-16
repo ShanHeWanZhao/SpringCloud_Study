@@ -1,0 +1,4 @@
+# 测试是否被覆盖
+spring:
+  application:
+    name: localConfig-eureka-server

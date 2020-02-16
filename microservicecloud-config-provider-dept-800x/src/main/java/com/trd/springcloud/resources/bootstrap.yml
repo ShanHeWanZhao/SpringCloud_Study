@@ -1,0 +1,7 @@
+spring:
+  cloud:
+    config:
+      name: microservicecloud-config-provider-dept
+      label: master
+      uri: http://config-3344.com:3344
+      profile: dev       # 和700x保持一致
