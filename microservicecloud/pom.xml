@@ -24,7 +24,7 @@
         <!--一定要注意MySQL-Connector和Druid的版本问题，
                 否则容易出现MySqlValidConnectionChecker错误-->
         <druid.version>1.0.6</druid.version>
-        <mysql-connector.version>5.1.25</mysql-connector.version>
+        <mysql-connector.version>8.0.28</mysql-connector.version>
     </properties>
 
     <!--对子模块依赖的版本管理，不负责引进-->
